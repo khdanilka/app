@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
+import android.util.Log;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -246,16 +247,17 @@ public class UserRepoInstrumentedTest
         Arrays.fill(colors, 300*100, 300*200, Color.GREEN);
         Arrays.fill(colors, 300*200, 300*300, Color.BLUE);
 
-        Bitmap bitmap = Bitmap.createBitmap(colors, 300, 300, Bitmap.Config.RGB_565);
+        Bitmap bitmap = Bitmap.createBitmap(colors, 100, 100, Bitmap.Config.RGB_565);
         IImageCache iImageCache = new RealmImageCache();
 
-        String url = "test9.jpg";
+        String url = "test23.jpg";
         File file = iImageCache.saveImage(url, bitmap);
 
-        //TimeUnit.SECONDS.sleep(10);
+        //Log.d("TAG",String.valueOf(iImageCache.contains(url)));
+
+       // TimeUnit.SECONDS.sleep(10);
 
         File file2 = iImageCache.getFile(url);
-
         assertEquals(file,file2);
 
     }
