@@ -1,6 +1,8 @@
 package ru.geekbrains.android3_7;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
@@ -9,11 +11,15 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
@@ -24,6 +30,8 @@ import ru.geekbrains.android3_7.di.DaggerTestComponent;
 import ru.geekbrains.android3_7.di.TestComponent;
 import ru.geekbrains.android3_7.di.modules.ApiModule;
 import ru.geekbrains.android3_7.model.cache.ICache;
+import ru.geekbrains.android3_7.model.cache.IImageCache;
+import ru.geekbrains.android3_7.model.cache.RealmImageCache;
 import ru.geekbrains.android3_7.model.entity.Repository;
 import ru.geekbrains.android3_7.model.entity.User;
 import ru.geekbrains.android3_7.model.repo.UsersRepo;
@@ -229,5 +237,27 @@ public class UserRepoInstrumentedTest
 
 
 
+
+    @Test
+    public void saveImage() throws InterruptedException {
+
+        int[] colors = new int[300*300];
+        Arrays.fill(colors, 0, 300*100, Color.argb(85, 255, 0, 0));
+        Arrays.fill(colors, 300*100, 300*200, Color.GREEN);
+        Arrays.fill(colors, 300*200, 300*300, Color.BLUE);
+
+        Bitmap bitmap = Bitmap.createBitmap(colors, 300, 300, Bitmap.Config.RGB_565);
+        IImageCache iImageCache = new RealmImageCache();
+
+        String url = "test9.jpg";
+        File file = iImageCache.saveImage(url, bitmap);
+
+        //TimeUnit.SECONDS.sleep(10);
+
+        File file2 = iImageCache.getFile(url);
+
+        assertEquals(file,file2);
+
+    }
 
 }
