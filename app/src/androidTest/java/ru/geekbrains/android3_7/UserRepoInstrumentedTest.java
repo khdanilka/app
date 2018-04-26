@@ -12,19 +12,21 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.inject.Inject;
 
 import io.reactivex.observers.TestObserver;
-import io.reactivex.schedulers.TestScheduler;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import ru.geekbrains.android3_7.di.DaggerTestComponent;
 import ru.geekbrains.android3_7.di.TestComponent;
 import ru.geekbrains.android3_7.di.modules.ApiModule;
+import ru.geekbrains.android3_7.model.cache.ICache;
+import ru.geekbrains.android3_7.model.entity.Repository;
 import ru.geekbrains.android3_7.model.entity.User;
 import ru.geekbrains.android3_7.model.repo.UsersRepo;
-import ru.geekbrains.android3_7.presenter.MainPresenter;
 
 import static org.junit.Assert.assertEquals;
 
@@ -40,6 +42,10 @@ public class UserRepoInstrumentedTest
 
     @Inject
     UsersRepo usersRepo;
+
+    @Inject
+    ICache iCache;
+
 
     @Test
     public void useAppContext() throws Exception
@@ -105,6 +111,122 @@ public class UserRepoInstrumentedTest
                 .addHeader("Cache-Control", "no-cache")
                 .setBody(body);
     }
+
+    @Test
+    public void putUser(){
+        String login = "kasha";
+        String avatarUrl = "malasha";
+        User user = new User(login,avatarUrl);
+        iCache.putUser(user);
+
+        TestObserver<User> observer = new TestObserver<>();
+        iCache.getUser(login).subscribe(observer);
+        observer.awaitTerminalEvent();
+        observer.assertValueCount(1);
+        assertEquals(observer.values().get(0).getLogin(), login);
+        assertEquals(observer.values().get(0).getAvatarUrl(), avatarUrl);
+    }
+
+    @Test
+    public void putUserRepos(){
+
+        putUserReposNewUser();
+        putUserReposOldUser();
+
+    }
+
+    public void putUserReposNewUser(){
+        String login = "kasha";
+        String avatarUrl = "malasha";
+        User user = new User(login,avatarUrl);
+       // iCache.putUser(user);
+
+        String id = "1";
+        String name = "test";
+        ArrayList<Repository> repos = new ArrayList<>();
+        repos.add(new Repository(id,name));
+        iCache.putUserRepos(user,repos);
+
+        TestObserver<List<Repository>> observer = new TestObserver<>();
+        iCache.getUserRepos(user).subscribe(observer);
+        observer.awaitTerminalEvent();
+        observer.assertValueCount(1);
+        assertEquals(observer.values().get(0).get(0).getId(), id);
+        assertEquals(observer.values().get(0).get(0).getName(), name);
+    }
+
+    public void putUserReposOldUser(){
+        String login = "kasha";
+        String avatarUrl = "malasha";
+        User user = new User(login,avatarUrl);
+        iCache.putUser(user);
+
+        String id = "1";
+        String name = "test";
+        ArrayList<Repository> repos = new ArrayList<>();
+        repos.add(new Repository(id,name));
+        iCache.putUserRepos(user,repos);
+
+        TestObserver<List<Repository>> observer = new TestObserver<>();
+        iCache.getUserRepos(user).subscribe(observer);
+        observer.awaitTerminalEvent();
+        observer.assertValueCount(1);
+        assertEquals(observer.values().get(0).get(0).getId(), id);
+        assertEquals(observer.values().get(0).get(0).getName(), name);
+    }
+
+
+    @Test
+    public void getUserFromCache(){
+        String login = "kasha2";
+        String avatarUrl = "malasha2";
+        User user = new User(login,avatarUrl);
+
+        TestObserver<User> observer = new TestObserver<>();
+        iCache.getUser(login).subscribe(observer);
+        observer.awaitTerminalEvent();
+        observer.assertValueCount(0);
+    }
+
+
+    @Test
+    public void getUserReposFromCache(){
+
+        getUserReposNewUser();
+        getUserReposExistUser();
+
+    }
+
+
+    public void getUserReposNewUser(){
+        String login = "kasha111";
+        String avatarUrl = "malasha";
+        User user = new User(login,avatarUrl);
+
+        TestObserver<List<Repository>> observer = new TestObserver<>();
+        iCache.getUserRepos(user).subscribe(observer);
+        observer.awaitTerminalEvent();
+        observer.assertValueCount(0);
+    }
+
+
+    public void getUserReposExistUser(){
+        String login = "kasha12";
+        String avatarUrl = "malasha";
+        User user = new User(login,avatarUrl);
+
+        String id = "2";
+        String name = "test";
+        ArrayList<Repository> repos = new ArrayList<>();
+        repos.add(new Repository(id,name));
+        iCache.putUserRepos(user,repos);
+
+        TestObserver<List<Repository>> observer = new TestObserver<>();
+        iCache.getUserRepos(user).subscribe(observer);
+        observer.awaitTerminalEvent();
+        observer.assertValueCount(1);
+    }
+
 
 
 
